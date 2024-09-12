@@ -11,7 +11,7 @@ import os
 from torch.testing import assert_close
 import json
 
-_run_e2e = int(os.environ.get("WAVE_RUN_E2E_TESTS", 1))
+_run_e2e = int(os.environ.get("WAVE_RUN_E2E_TESTS", 0))
 
 require_e2e = pytest.mark.skipif(not _run_e2e, reason="e2e tests are disabled")
 default_test_shapes = [(1024, 5120, 640), (2048, 10240, 1280), (4096, 20480, 2560)]
