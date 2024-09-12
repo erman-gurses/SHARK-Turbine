@@ -7,17 +7,28 @@ import pytest
 import sympy
 import os
 import torch
+import json
 
-_run_e2e = int(os.environ.get("WAVE_RUN_E2E_TESTS", 0))
+_run_e2e = int(os.environ.get("WAVE_RUN_E2E_TESTS", 1))
+
 
 require_e2e = pytest.mark.skipif(not _run_e2e, reason="e2e tests are disabled")
+default_test_shapes = [(1, 128), (256, 64), (256, 128), (256, 256), (256, 1024)]
+user_specified_test_shapes = ""
 
+test_params_path = os.environ.get("TEST_PARAMS_PATH", None)
 
-_test_shapes = [(1, 128), (256, 64), (256, 128), (256, 256), (256, 1024)]
+if test_params_path:
+    with open(test_params_path, "r") as file:
+        user_specified_test_shapes = json.load(file)
 
+def get_test_shapes(test_name: str) -> list[tuple[int]]:
+    if test_name in user_specified_test_shapes:
+        return user_specified_test_shapes[test_name]
+    return default_test_shapes
 
 @require_e2e
-@pytest.mark.parametrize("shape", _test_shapes)
+@pytest.mark.parametrize("shape", get_test_shapes("test_copy"))
 def test_copy(shape):
     M = tkl.sym.M
     N = tkl.sym.N
@@ -71,7 +82,7 @@ def test_copy(shape):
 
 
 @require_e2e
-@pytest.mark.parametrize("shape", _test_shapes)
+@pytest.mark.parametrize("shape", get_test_shapes("test_transpose_read"))
 def test_transpose_read(shape):
     shape = shape[::-1]
     M = tkl.sym.M
@@ -128,7 +139,7 @@ def test_transpose_read(shape):
 
 
 @require_e2e
-@pytest.mark.parametrize("shape", _test_shapes)
+@pytest.mark.parametrize("shape", get_test_shapes("test_transpose_write"))
 def test_transpose_write(shape):
     M = tkl.sym.M
     N = tkl.sym.N
@@ -184,7 +195,7 @@ def test_transpose_write(shape):
 
 
 @require_e2e
-@pytest.mark.parametrize("shape", _test_shapes)
+@pytest.mark.parametrize("shape", get_test_shapes("test_reduce_sum"))
 def test_reduce_sum(shape):
     M = tkl.sym.M
     N = tkl.sym.N
@@ -240,7 +251,7 @@ def test_reduce_sum(shape):
 
 
 @require_e2e
-@pytest.mark.parametrize("shape", _test_shapes)
+@pytest.mark.parametrize("shape", get_test_shapes("test_reduce_max"))
 def test_reduce_max(shape):
     M = tkl.sym.M
     N = tkl.sym.N
